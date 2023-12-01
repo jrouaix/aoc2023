@@ -2,8 +2,7 @@ use nom::{
   branch::alt,
   bytes::complete::{tag_no_case, take_while_m_n},
   character::complete::anychar,
-  combinator::{map, map_res, value},
-  multi::many0,
+  combinator::{iterator, map, map_res, value},
   IResult,
 };
 
@@ -28,41 +27,60 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-  fn digit(input: &str) -> IResult<&str, u32> {
-    map_res(take_while_m_n(1, 1, |c: char| c.is_digit(10)), str::parse)(input)
+  fn digit(input: &str) -> IResult<&str, Option<u32>> {
+    map_res(take_while_m_n(1, 1, |c: char| c.is_digit(10)), |s| str::parse(s).map(Some))(input)
   }
-  fn in_letters(input: &str) -> IResult<&str, u32> {
-    alt((
-      // value(0, tag_no_case("zero")),
-      value(1, tag_no_case("one")),
-      value(2, tag_no_case("two")),
-      value(3, tag_no_case("three")),
-      value(4, tag_no_case("four")),
-      value(5, tag_no_case("five")),
-      value(6, tag_no_case("six")),
-      value(7, tag_no_case("seven")),
-      value(8, tag_no_case("eight")),
-      value(9, tag_no_case("nine")),
-    ))(input)
+  fn in_letters(input: &str) -> IResult<&str, Option<u32>> {
+    map(
+      alt((
+        value(1, tag_no_case("one")),
+        value(2, tag_no_case("two")),
+        value(3, tag_no_case("three")),
+        value(4, tag_no_case("four")),
+        value(5, tag_no_case("five")),
+        value(6, tag_no_case("six")),
+        value(7, tag_no_case("seven")),
+        value(8, tag_no_case("eight")),
+        value(9, tag_no_case("nine")),
+      )),
+      |v| Some(v),
+    )(input)
   }
-  fn junk(input: &str) -> IResult<&str, ()> {
-    value((), anychar)(input)
+  fn in_letters_reversed(input: &str) -> IResult<&str, Option<u32>> {
+    map(
+      alt((
+        value(1, tag_no_case("eno")),
+        value(2, tag_no_case("owt")),
+        value(3, tag_no_case("eerht")),
+        value(4, tag_no_case("ruof")),
+        value(5, tag_no_case("evif")),
+        value(6, tag_no_case("xis")),
+        value(7, tag_no_case("neves")),
+        value(8, tag_no_case("thgie")),
+        value(9, tag_no_case("enin")),
+      )),
+      |v| Some(v),
+    )(input)
   }
-  fn line(input: &str) -> IResult<&str, Vec<Option<u32>>> {
-    many0(alt((map(digit, |i| Some(i)), map(in_letters, |i| Some(i)), value(None, junk))))(input)
+
+  fn first(input: &str) -> Option<u32> {
+    iterator(input, alt((digit, in_letters, value(None, anychar)))).into_iter().flatten().next()
+  }
+  fn last(input: &str) -> Option<u32> {
+    let input = input.chars().rev().collect::<String>();
+    let input = input.as_str();
+    let result = iterator(input, alt((digit, in_letters_reversed, value(None, anychar))))
+      .into_iter()
+      .flatten()
+      .next();
+    result
   }
 
   Some(
     input
       .lines()
-      .map(|l| {
-        dbg!(l);
-        dbg!(line(l).unwrap().1.into_iter().flatten()).fold((None, None), |(first, last), i| match (first, last) {
-          (None, _) => (Some(i), Some(i)),
-          (Some(f), _) => (Some(f), Some(i)),
-        })
-      })
-      .filter_map(|(first, last)| first.and_then(|first| last.map(|last| dbg!(first) * 10 + dbg!(last))))
+      .map(|l| (first(l), last(l)))
+      .filter_map(|(first, last)| first.and_then(|first| last.map(|last| first * 10 + last)))
       .sum(),
   )
 }
@@ -73,14 +91,14 @@ mod tests {
 
   #[test]
   fn test_part_one() {
-    let result = part_one(&advent_of_code::template::read_file("examples", DAY));
+    let result = part_one(&advent_of_code::template::read_file("inputs", DAY));
     assert_eq!(result, Some(37492));
   }
 
   #[test]
   fn test_part_two() {
-    let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-    assert_eq!(result, Some(54506));
+    let result = part_two(&advent_of_code::template::read_file("inputs", DAY));
+    assert_eq!(result, Some(54504));
   }
 
   #[test]
