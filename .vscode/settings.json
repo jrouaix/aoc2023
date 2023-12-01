@@ -1,0 +1,44 @@
+{
+  //----------------------------------------------------------------------
+  // FONT & DISPLAY
+  //----------------------------------------------------------------------
+  "editor.fontFamily": "'JetBrains Mono', 'Droid Sans Mono', 'monospace', monospace, 'Droid Sans Fallback'",
+  "editor.fontLigatures": true,
+  "editor.rulers": [
+    140
+  ],
+  "editor.tabSize": 2,
+  "editor.detectIndentation": false,
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  //----------------------------------------------------------------------
+  // FORMAT & LINTING
+  //----------------------------------------------------------------------
+  "editor.formatOnSave": true,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "emmet.includeLanguages": {
+    "rust": "rs"
+  },
+  "[rust]": {
+    "editor.formatOnSave": true,
+    // "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  },
+  "[json]": {
+    "editor.formatOnSave": false,
+    // "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  },
+  "[html]": {
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+  },
+  //----------------------------------------------------------------------
+  // RUST & CARGO STUFF
+  //----------------------------------------------------------------------
+  // "rust-analyzer.check.features": [
+  //     "liveview"
+  // ],
+  "rust-analyzer.cargo.extraEnv": {
+    "CARGO_TARGET_DIR": "target/analyzer"
+  },
+}
