@@ -16,6 +16,7 @@ enum Color {
   Blue,
   Red,
 }
+
 #[derive(Debug, Clone)]
 pub struct Game {
   id: u32,
@@ -60,42 +61,44 @@ fn game(input: &str) -> IResult<&str, Game> {
 
 pub fn part_one(input: &str) -> Option<u32> {
   let (r_limit, g_limit, b_limit) = (12_u32, 13_u32, 14_u32);
-  input
-    .lines()
-    .filter_map(|l| game(l).map(|(_, g)| g).ok())
-    .filter_map(|g| {
-      for h in g.hands {
-        if h.red > r_limit || h.green > g_limit || h.blue > b_limit {
-          return None;
+  Some(
+    input
+      .lines()
+      .filter_map(|l| game(l).map(|(_, g)| g).ok())
+      .filter_map(|g| {
+        for h in g.hands {
+          if h.red > r_limit || h.green > g_limit || h.blue > b_limit {
+            return None;
+          }
         }
-      }
-      Some(g.id)
-    })
-    .sum::<u32>()
-    .into()
+        Some(g.id)
+      })
+      .sum(),
+  )
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-  input
-    .lines()
-    .filter_map(|l| game(l).map(|(_, g)| g).ok())
-    .map(|g| {
-      let mut min_hand = Hand::default();
-      for h in g.hands {
-        if h.red > min_hand.red {
-          min_hand.red = h.red;
+  Some(
+    input
+      .lines()
+      .filter_map(|l| game(l).map(|(_, g)| g).ok())
+      .map(|g| {
+        let mut min_hand = Hand::default();
+        for h in g.hands {
+          if h.red > min_hand.red {
+            min_hand.red = h.red;
+          }
+          if h.green > min_hand.green {
+            min_hand.green = h.green;
+          }
+          if h.blue > min_hand.blue {
+            min_hand.blue = h.blue;
+          }
         }
-        if h.green > min_hand.green {
-          min_hand.green = h.green;
-        }
-        if h.blue > min_hand.blue {
-          min_hand.blue = h.blue;
-        }
-      }
-      min_hand.red * min_hand.green * min_hand.blue
-    })
-    .sum::<u32>()
-    .into()
+        min_hand.red * min_hand.green * min_hand.blue
+      })
+      .sum(),
+  )
 }
 
 #[cfg(test)]
