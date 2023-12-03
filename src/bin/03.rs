@@ -42,8 +42,64 @@ pub fn part_one<'a>(input: &'a str) -> Option<u32> {
   Some(sum)
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-  None
+pub fn part_two<'a>(input: &'a str) -> Option<u32> {
+  // hash of gear positions and adjacents part numbers count & ratio
+  type Bag = std::collections::BTreeMap<(usize, usize), (u32, u32)>;
+
+  fn char_is_gear(c: char) -> bool {
+    c == '*'
+  }
+
+  fn acc_fn<'a>(mut bag: Bag, line_number: usize, prev: &'a str, line: &'a str, next: &'a str) -> (Bag, usize, &'a str, &'a str) {
+    for r#match in DIGITS.find_iter(line) {
+      let left = r#match.start().saturating_sub(1);
+      let right = r#match.end().saturating_add(1);
+
+      let number = r#match.as_str().parse::<u32>().expect("Could not parse number");
+
+      for (pos, c) in prev[min(left, prev.len())..min(right, prev.len())].chars().enumerate() {
+        if char_is_gear(c) {
+          let entry = bag.entry((line_number - 1, pos + left)).or_insert((0, 1));
+          entry.0 += 1;
+          if entry.0 < 3 {
+            entry.1 *= number;
+          }
+        }
+      }
+      for (pos, c) in line[min(left, line.len())..min(right, line.len())].chars().enumerate() {
+        if char_is_gear(c) {
+          let entry = bag.entry((line_number, pos + left)).or_insert((0, 1));
+          entry.0 += 1;
+          if entry.0 < 3 {
+            entry.1 *= number;
+          }
+        }
+      }
+      for (pos, c) in next[min(left, next.len())..min(right, next.len())].chars().enumerate() {
+        if char_is_gear(c) {
+          let entry = bag.entry((line_number + 1, pos + left)).or_insert((0, 1));
+          entry.0 += 1;
+          if entry.0 < 3 {
+            entry.1 *= number;
+          }
+        }
+      }
+    }
+
+    (bag, line_number + 1, line, next)
+  }
+
+  let (bag, last_line_number, last_prev, last_line) = input
+    .lines()
+    .fold((Bag::new(), 1_usize, "", "") as (_, _, &'a str, &'a str), |(bag, line_number, prev, line), next| acc_fn(bag, line_number, prev, line, next));
+
+  let (bag, ..) = acc_fn(bag, last_line_number, last_prev, last_line, "");
+
+  dbg!(&bag);
+
+  let ratios_sum = bag.into_iter().filter(|(_, (count, _))| *count == 2).map(|(_, (_, ratio))| ratio).sum::<u32>();
+
+  Some(ratios_sum)
 }
 
 #[cfg(test)]
@@ -78,7 +134,7 @@ mod tests {
   #[test]
   fn test_part_one() {
     let result = part_one(&advent_of_code::template::read_file("inputs", DAY));
-    assert_eq!(result, Some(332942));
+    assert_eq!(result, Some(536202));
   }
 
   #[test]
@@ -102,7 +158,7 @@ mod tests {
   #[test]
   fn test_part_two() {
     let result = part_two(&advent_of_code::template::read_file("inputs", DAY));
-    assert_eq!(result, None);
+    assert_eq!(result, Some(78272573));
   }
 
   #[test]
