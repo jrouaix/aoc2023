@@ -95,8 +95,6 @@ pub fn part_two<'a>(input: &'a str) -> Option<u32> {
 
   let (bag, ..) = acc_fn(bag, last_line_number, last_prev, last_line, "");
 
-  dbg!(&bag);
-
   let ratios_sum = bag.into_iter().filter(|(_, (count, _))| *count == 2).map(|(_, (_, ratio))| ratio).sum::<u32>();
 
   Some(ratios_sum)
