@@ -185,7 +185,7 @@ struct Hand2 {
 impl Hand2 {
   fn new(inner: InnerHand2) -> Self {
     let mut counts = [0_usize; 13];
-    let mut j_count = 0;
+    let mut j_count = 0_usize;
     for card in inner.iter() {
       if *card == Card2::_J {
         j_count += 1;
@@ -196,31 +196,35 @@ impl Hand2 {
 
     counts.sort_unstable_by(|a, b| b.cmp(a));
 
-    let tmp_strength = match counts {
-      [5, ..] => Strength::FiveOfAKind,
-      [4, ..] => Strength::FourOfAKind,
-      [3, 2, ..] => Strength::FullHouse,
-      [3, ..] => Strength::ThreeOfAKind,
-      [2, 2, ..] => Strength::TwoPairs,
-      [2, ..] => Strength::OnePair,
-      _ => Strength::HighCard,
-    };
+    let strength = match (counts, j_count) {
+      ([5, ..], _) => Strength::FiveOfAKind,
 
-    let strength = match (tmp_strength, j_count) {
-      (Strength::FiveOfAKind, _) => Strength::FiveOfAKind,
-      (Strength::FourOfAKind, 1..) => Strength::FiveOfAKind,
-      (Strength::FullHouse, _) => Strength::FullHouse,
-      (Strength::ThreeOfAKind, 1) => Strength::FourOfAKind,
-      (Strength::ThreeOfAKind, 2) => Strength::FiveOfAKind,
-      (Strength::TwoPairs, 1) => Strength::FullHouse,
-      (Strength::OnePair, 1) => Strength::ThreeOfAKind,
-      (Strength::OnePair, 2) => Strength::FourOfAKind,
-      (Strength::OnePair, 3..) => Strength::FiveOfAKind,
-      (Strength::HighCard, 1) => Strength::OnePair,
-      (Strength::HighCard, 2) => Strength::ThreeOfAKind,
-      (Strength::HighCard, 3) => Strength::FourOfAKind,
-      (Strength::HighCard, 4) => Strength::FiveOfAKind,
-      _ => tmp_strength,
+      ([4, ..], 1..) => Strength::FiveOfAKind,
+      ([4, ..], 0..) => Strength::FourOfAKind,
+
+      ([3, 2, ..], _) => Strength::FullHouse,
+
+      ([3, ..], 0) => Strength::ThreeOfAKind,
+      ([3, ..], 1) => Strength::FourOfAKind,
+      ([3, ..], 2) => Strength::FiveOfAKind,
+
+      ([2, 2, ..], 0) => Strength::TwoPairs,
+      ([2, 2, ..], 1) => Strength::FullHouse,
+
+      ([2, ..], 0) => Strength::OnePair,
+      ([2, ..], 1) => Strength::ThreeOfAKind,
+      ([2, ..], 2) => Strength::FourOfAKind,
+      ([2, ..], 3) => Strength::FiveOfAKind,
+
+      ([1, ..], 0) => Strength::HighCard,
+      ([1, ..], 1) => Strength::OnePair,
+      ([1, ..], 2) => Strength::ThreeOfAKind,
+      ([1, ..], 3) => Strength::FourOfAKind,
+      ([1, ..], 4) => Strength::FiveOfAKind,
+
+      (_, 5) => Strength::FiveOfAKind,
+
+      _ => panic!("I don't know what i'm doing !! : {inner:?}"),
     };
 
     Self { strength, inner }
